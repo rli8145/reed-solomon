@@ -2,14 +2,14 @@
 #include <stdexcept>
 #include <algorithm>
 
-// ---------- helpers ----------
+// helpers 
 
 static void check_field(const Poly& a, const Poly& b) {
     if (a.p != b.p)
         throw std::invalid_argument("Poly: mismatched primes");
 }
 
-// ---------- construction ----------
+// construction 
 
 Poly::Poly(std::vector<Fp> coefficients, const mpz_class& prime)
     : coeffs(std::move(coefficients)), p(prime) {
@@ -21,7 +21,7 @@ void Poly::strip() {
         coeffs.pop_back();
 }
 
-// ---------- queries ----------
+// queries
 
 int Poly::degree() const {
     return static_cast<int>(coeffs.size()) - 1;

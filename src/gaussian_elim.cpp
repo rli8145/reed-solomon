@@ -4,7 +4,6 @@
 
 std::optional<std::vector<Fp>> solve(
     std::vector<std::vector<Fp>> A, std::vector<Fp> b) {
-
     size_t n = A.size();
     if (n == 0) return std::vector<Fp>{};
     if (b.size() != n)
@@ -41,7 +40,7 @@ std::optional<std::vector<Fp>> solve(
     }
 
     // Back substitution
-    std::vector<Fp> x(n, Fp(0, p));
+    Vec x(n, Fp(0, p));
     for (int i = (int)n - 1; i >= 0; i--) {
         Fp sum = b[i];
         for (size_t j = i + 1; j < n; j++)

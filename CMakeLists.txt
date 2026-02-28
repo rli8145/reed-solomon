@@ -17,6 +17,7 @@ add_library(rs_lib
     src/fp.cpp
     src/poly.cpp
     src/gaussian_elim.cpp
+    src/rs.cpp
 )
 target_include_directories(rs_lib PUBLIC src ${GMP_INCLUDE_DIR})
 target_link_libraries(rs_lib PUBLIC ${GMP_LIB} ${GMPXX_LIB})
