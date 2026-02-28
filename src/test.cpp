@@ -1,6 +1,7 @@
 #include "fp.h"
 #include "poly.h"
 #include "gaussian_elim.h"
+#include "rs.h"
 #include <cassert>
 #include <iostream>
 
@@ -102,11 +103,64 @@ static void test_gaussian_elim() {
     std::cout << "  gaussian_elim: ok\n";
 }
 
+static void test_rs() {
+    mpz_class p(17);
+    size_t k = 4, n = 10;
+    RSCode rs(p, k, n);  // t = floor((10-4)/2) = 3
+
+    std::vector<Fp> msg = {Fp(3,p), Fp(1,p), Fp(4,p), Fp(1,p)};
+    auto codeword = rs.encode(msg);
+
+    // Decode with 0 errors
+    {
+        auto decoded = rs.decode_bw(codeword);
+        assert(decoded.has_value());
+        assert(*decoded == msg);
+    }
+
+    // Decode with exactly t=3 errors at positions 0, 4, 9
+    {
+        auto corrupted = codeword;
+        corrupted[0] = corrupted[0] + Fp(1, p);
+        corrupted[4] = corrupted[4] + Fp(5, p);
+        corrupted[9] = corrupted[9] + Fp(11, p);
+        auto decoded = rs.decode_bw(corrupted);
+        assert(decoded.has_value());
+        assert(*decoded == msg);
+    }
+
+    // Decode with t=3 errors at consecutive positions 1,2,3
+    {
+        auto corrupted = codeword;
+        corrupted[1] = corrupted[1] + Fp(7, p);
+        corrupted[2] = corrupted[2] + Fp(3, p);
+        corrupted[3] = corrupted[3] + Fp(9, p);
+        auto decoded = rs.decode_bw(corrupted);
+        assert(decoded.has_value());
+        assert(*decoded == msg);
+    }
+
+    // t+1 = 4 errors: decoding should fail or return wrong answer
+    {
+        auto corrupted = codeword;
+        corrupted[0] = corrupted[0] + Fp(1, p);
+        corrupted[1] = corrupted[1] + Fp(2, p);
+        corrupted[2] = corrupted[2] + Fp(3, p);
+        corrupted[3] = corrupted[3] + Fp(4, p);
+        auto decoded = rs.decode_bw(corrupted);
+        // Either fails or returns wrong message
+        assert(!decoded.has_value() || *decoded != msg);
+    }
+
+    std::cout << "  rs: ok\n";
+}
+
 int main() {
     std::cout << "tests:\n";
     test_fp();
     test_poly();
     test_gaussian_elim();
+    test_rs();
     std::cout << "all passed.\n";
     return 0;
 }
