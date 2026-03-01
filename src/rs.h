@@ -24,4 +24,7 @@ public:
 
     // Berlekamp-Welch decoding - returns nullopt if decoding fails
     std::optional<std::vector<Fp>> decode_bw(const std::vector<Fp>& received) const;
+
+    // Euclidean algorithm decoder (partial extended GCD)
+    std::optional<std::vector<Fp>> decode_euclid(const std::vector<Fp>& received) const;
 };

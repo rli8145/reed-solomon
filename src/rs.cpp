@@ -103,3 +103,56 @@ std::optional<std::vector<Fp>> RSCode::decode_bw(const std::vector<Fp>& received
 
     return std::nullopt;
 }
+
+std::optional<std::vector<Fp>> RSCode::decode_euclid(const std::vector<Fp>& received) const {
+    if (received.size() != n)
+        throw std::invalid_argument("RSCode::decode_euclid: received length must be n");
+
+    // Step 1: Lagrange interpolate received values to get R(x)
+    std::vector<std::pair<Fp, Fp>> pts;
+    for (size_t i = 0; i < n; i++)
+        pts.push_back({alphas[i], received[i]});
+    Poly R = lagrange_interpolate(pts);
+
+    // Step 2: Build vanishing polynomial V(x) = prod(x - alpha_i)
+    Poly V({Fp(1, p)}, p);
+    for (size_t i = 0; i < n; i++) {
+        Poly linear({-alphas[i], Fp(1, p)}, p);
+        V = V * linear;
+    }
+
+    // Step 3: Run extended GCD on (V, R), stopping when deg(remainder) < (n+k)/2.
+    //
+    // At each step maintain: s_i * V + t_i * R = r_i
+    // Key equation says E(x)*R(x) = Q(x) (mod V(x)) where E = error locator (deg <= t), Q = m*E (deg < k+t = (n+k)/2).
+    // So when deg(r_i) drops below (n+k)/2, t_i is proportional to E
+    // and r_i is proportional to Q. Then m = r_i / t_i.
+    int threshold = (int)(n + k) / 2;
+
+    Poly r_prev = V;
+    Poly r_curr = R;
+    Poly t_prev(p);               // 0
+    Poly t_curr({Fp(1, p)}, p);   // 1
+
+    while (r_curr.degree() >= threshold) {
+        auto [q, r] = divmod(r_prev, r_curr);
+        Poly t_next = t_prev - q * t_curr;
+
+        r_prev = r_curr;
+        r_curr = r;
+        t_prev = t_curr;
+        t_curr = t_next;
+    }
+
+    // r_curr = c*Q, t_curr = c*E for some scalar c
+    // m(x) = r_curr / t_curr (scalar cancels)
+    if (t_curr.is_zero()) return std::nullopt;
+    auto [m, rem] = divmod(r_curr, t_curr);
+    if (!rem.is_zero()) return std::nullopt;
+    if (m.degree() >= (int)k) return std::nullopt;
+
+    std::vector<Fp> msg(k, Fp(0, p));
+    for (size_t i = 0; i < m.coeffs.size() && i < k; i++)
+        msg[i] = m.coeffs[i];
+    return msg;
+}

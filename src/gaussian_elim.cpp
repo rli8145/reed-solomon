@@ -40,7 +40,7 @@ std::optional<std::vector<Fp>> solve(
     }
 
     // Back substitution
-    Vec x(n, Fp(0, p));
+    std::vector<Fp> x(n, Fp(0, p));
     for (int i = (int)n - 1; i >= 0; i--) {
         Fp sum = b[i];
         for (size_t j = i + 1; j < n; j++)
