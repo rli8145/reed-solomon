@@ -113,9 +113,10 @@ static void test_rs() {
 
     // Decode with 0 errors
     {
-        auto decoded = rs.decode_bw(codeword);
-        assert(decoded.has_value());
-        assert(*decoded == msg);
+        auto bw = rs.decode_bw(codeword);
+        auto eu = rs.decode_euclid(codeword);
+        assert(bw.has_value() && *bw == msg);
+        assert(eu.has_value() && *eu == msg);
     }
 
     // Decode with exactly t=3 errors at positions 0, 4, 9
@@ -124,9 +125,10 @@ static void test_rs() {
         corrupted[0] = corrupted[0] + Fp(1, p);
         corrupted[4] = corrupted[4] + Fp(5, p);
         corrupted[9] = corrupted[9] + Fp(11, p);
-        auto decoded = rs.decode_bw(corrupted);
-        assert(decoded.has_value());
-        assert(*decoded == msg);
+        auto bw = rs.decode_bw(corrupted);
+        auto eu = rs.decode_euclid(corrupted);
+        assert(bw.has_value() && *bw == msg);
+        assert(eu.has_value() && *eu == msg);
     }
 
     // Decode with t=3 errors at consecutive positions 1,2,3
@@ -135,9 +137,10 @@ static void test_rs() {
         corrupted[1] = corrupted[1] + Fp(7, p);
         corrupted[2] = corrupted[2] + Fp(3, p);
         corrupted[3] = corrupted[3] + Fp(9, p);
-        auto decoded = rs.decode_bw(corrupted);
-        assert(decoded.has_value());
-        assert(*decoded == msg);
+        auto bw = rs.decode_bw(corrupted);
+        auto eu = rs.decode_euclid(corrupted);
+        assert(bw.has_value() && *bw == msg);
+        assert(eu.has_value() && *eu == msg);
     }
 
     // t+1 = 4 errors: decoding should fail or return wrong answer
@@ -147,9 +150,10 @@ static void test_rs() {
         corrupted[1] = corrupted[1] + Fp(2, p);
         corrupted[2] = corrupted[2] + Fp(3, p);
         corrupted[3] = corrupted[3] + Fp(4, p);
-        auto decoded = rs.decode_bw(corrupted);
-        // Either fails or returns wrong message
-        assert(!decoded.has_value() || *decoded != msg);
+        auto bw = rs.decode_bw(corrupted);
+        auto eu = rs.decode_euclid(corrupted);
+        assert(!bw.has_value() || *bw != msg);
+        assert(!eu.has_value() || *eu != msg);
     }
 
     std::cout << "  rs: ok\n";
