@@ -1,5 +1,6 @@
 #include "rs.h"
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <algorithm>
 #include <string>
@@ -100,6 +101,25 @@ int main() {
     } else {
         std::cout << "  euclidean:       failed\n";
     }
+
+    // Write JSON for visualization script
+    std::ofstream out("vis/demo_data.json");
+    auto dump_vec = [&](const char* name, const std::vector<Fp>& v) {
+        out << "  \"" << name << "\": [";
+        for (size_t i = 0; i < v.size(); i++)
+            out << (i ? ", " : "") << v[i].val;
+        out << "]";
+    };
+    out << "{\n";
+    out << "  \"message_str\": \"" << input << "\",\n";
+    out << "  \"p\": " << p << ", \"k\": " << k << ", \"n\": " << n << ", \"t\": " << rs.t << ",\n";
+    dump_vec("codeword", codeword); out << ",\n";
+    dump_vec("corrupted", corrupted); out << ",\n";
+    out << "  \"error_positions\": [";
+    for (size_t i = 0; i < positions.size(); i++)
+        out << (i ? ", " : "") << positions[i];
+    out << "]\n}\n";
+    std::cout << "\nwrote vis/demo_data.json\n";
 
     return 0;
 }

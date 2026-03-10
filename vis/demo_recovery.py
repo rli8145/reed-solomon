@@ -34,7 +34,8 @@ ax.plot([], [], "D", color="#2ecc71", markersize=10, markeredgewidth=2,
 
 ax.set_xlabel("position i")
 ax.set_ylabel("value (mod {})".format(data["p"]))
-ax.set_title("Reed-Solomon recovery: n={}, k={}, t={} errors corrected".format(n, k, t))
+msg_str = data.get("message_str", "")
+ax.set_title("Reed-Solomon recovery: \"{}\"  (n={}, k={}, t={} errors corrected)".format(msg_str, n, k, t))
 ax.set_xticks(x)
 ax.legend()
 ax.set_ylim(0, data["p"])
