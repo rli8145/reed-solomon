@@ -1,42 +1,42 @@
 # Reed-Solomon Error Correcting Codes
 
-A from-scratch C++ implementation of Reed-Solomon encoding and decoding over prime fields $\mathbb{F}_p$, built on top of GMP for exact arithmetic. Includes two independent decoders and Python visualizations via matplotlib.
+A from-scratch C++ implementation of Reed-Solomon encoding and decoding over prime fields 𝔽ₚ, built on top of GMP for exact arithmetic. Includes two independent decoders and Python visualizations via matplotlib.
 
 ## Components
 
 A longer writeup can be found [here](reed-solomon.pdf) (shoutout to MATH145 and MATH146).
 
-### `fp.h / fp.cpp` — Finite field $\mathbb{F}_p$
+### `fp.h / fp.cpp` — Finite field 𝔽ₚ
 
-Elements of $\mathbb{Z}/p\mathbb{Z}$ for prime $p$, backed by GMP's `mpz_class`. All arithmetic reduces mod $p$. Multiplicative inverse via the extended Euclidean algorithm. Also provides Legendre symbol, Tonelli-Shanks square root, and modular exponentiation.
+Elements of ℤ/pℤ for prime p, backed by GMP's `mpz_class`. All arithmetic reduces mod p. Multiplicative inverse via the extended Euclidean algorithm. Also provides Legendre symbol, Tonelli-Shanks square root, and modular exponentiation.
 
-### `poly.h / poly.cpp` — Polynomials over $\mathbb{F}_p[x]$
+### `poly.h / poly.cpp` — Polynomials over 𝔽ₚ[x]
 
-Polynomials with coefficients in $\mathbb{F}_p$, stored as a coefficient vector (`coeffs[i]` = coefficient of $x^i$).
+Polynomials with coefficients in 𝔽ₚ, stored as a coefficient vector (`coeffs[i]` = coefficient of xⁱ).
 
 | Function | Description |
 |---|---|
 | `evaluate(x)` | Horner's method |
-| `divmod(a, b)` | Polynomial long division; returns $(q, r)$ with $a = b \cdot q + r$, $\deg r < \deg b$ |
+| `divmod(a, b)` | Polynomial long division; returns (q, r) with a = b·q + r, deg r < deg b |
 | `gcd(a, b)` | Euclidean algorithm; result is monic |
-| `extended_gcd(a, b)` | Returns $(g, s, t)$ with $g = s \cdot a + t \cdot b$ (Bézout's identity) |
-| `lagrange_interpolate(pts)` | Unique polynomial of degree $< n$ through $n$ given points |
+| `extended_gcd(a, b)` | Returns (g, s, t) with g = s·a + t·b (Bézout's identity) |
+| `lagrange_interpolate(pts)` | Unique polynomial of degree < n through n given points |
 
-### `gaussian_elim.h / gaussian_elim.cpp` — Linear algebra over $\mathbb{F}_p$
+### `gaussian_elim.h / gaussian_elim.cpp` — Linear algebra over 𝔽ₚ
 
-`solve(A, b)` solves an $n \times n$ linear system $Ax = b$ over $\mathbb{F}_p$ using Gaussian elimination with partial pivoting. Division is exact (no floating point), so partial pivoting is only needed to avoid dividing by zero. Returns `nullopt` if the system is singular.
+`solve(A, b)` solves an n×n linear system Ax = b over 𝔽ₚ using Gaussian elimination with partial pivoting. Division is exact (no floating point), so partial pivoting is only needed to avoid dividing by zero. Returns `nullopt` if the system is singular.
 
 ### `rs.h / rs.cpp` — Reed-Solomon codes
 
-`RSCode(p, k, n)` constructs a code over $\mathbb{F}_p$ with message length $k$, codeword length $n$, and evaluation points $\alpha_0, \ldots, \alpha_{n-1} = 0, \ldots, n-1$. The error correction capacity is $t = \lfloor (n-k)/2 \rfloor$. Custom evaluation points can be supplied via the second constructor.
+`RSCode(p, k, n)` constructs a code over 𝔽ₚ with message length k, codeword length n, and evaluation points α₀, …, αₙ₋₁ = 0, …, n-1. The error correction capacity is t = ⌊(n-k)/2⌋. Custom evaluation points can be supplied via the second constructor.
 
-**Encoding.** The message $(m_0, \ldots, m_{k-1})$ is interpreted as coefficients of a polynomial $m(x)$ of degree $< k$. The codeword is $(m(\alpha_0), \ldots, m(\alpha_{n-1}))$.
+**Encoding.** The message (m₀, …, mₖ₋₁) is interpreted as coefficients of a polynomial m(x) of degree < k. The codeword is (m(α₀), …, m(αₙ₋₁)).
 
-**Berlekamp-Welch decoder** (`decode_bw`). Finds polynomials $E(x)$ (error locator, monic, degree $e$) and $Q(x) = m(x) \cdot E(x)$ (degree $< k+e$) satisfying $y_i \cdot E(\alpha_i) = Q(\alpha_i)$ at all $n$ received positions. This gives a linear system in the unknown coefficients of $E$ and $Q$. The decoder tries $e = t, t-1, \ldots, 0$ until the system is non-singular, then recovers $m = Q/E$.
+**Berlekamp-Welch decoder** (`decode_bw`). Finds polynomials E(x) (error locator, monic, degree e) and Q(x) = m(x)·E(x) (degree < k+e) satisfying yᵢ·E(αᵢ) = Q(αᵢ) at all n received positions. This gives a linear system in the unknown coefficients of E and Q. The decoder tries e = t, t-1, …, 0 until the system is non-singular, then recovers m = Q/E.
 
-**Euclidean decoder** (`decode_euclid`). Lagrange-interpolates the received values to get a polynomial $R(x)$ of degree $< n$, then builds the vanishing polynomial $V(x) = \prod_{i}(x - \alpha_i)$. Runs the extended Euclidean algorithm on $(V, R)$, stopping as soon as $\deg(\text{remainder}) < (n+k)/2$. At that point the remainder is proportional to $Q = m \cdot E$ and the corresponding Bézout coefficient is proportional to $E$, so $m = \text{remainder} / \text{coefficient}$.
+**Euclidean decoder** (`decode_euclid`). Lagrange-interpolates the received values to get a polynomial R(x) of degree < n, then builds the vanishing polynomial V(x) = ∏ᵢ(x − αᵢ). Runs the extended Euclidean algorithm on (V, R), stopping as soon as deg(remainder) < (n+k)/2. At that point the remainder is proportional to Q = m·E and the corresponding Bézout coefficient is proportional to E, so m = remainder / coefficient.
 
-Both decoders return `nullopt` if decoding fails i.e. more than $t$ errors.
+Both decoders return `nullopt` if decoding fails i.e. more than t errors.
 
 ## Dependencies
 
@@ -63,7 +63,7 @@ Encodes a user-supplied ASCII string as a Reed-Solomon codeword, introduces the 
 # enter a message (max 65 chars): hello world
 ```
 
-The demo uses $p = 131$ (smallest prime $\geq 128$) so each ASCII character maps directly to a field element. For a message of length $k$, the codeword has length $n = \min(2k,\, 130)$, giving error correction capacity $t = \lfloor (n-k)/2 \rfloor$.
+The demo uses p = 131 (smallest prime ≥ 128) so each ASCII character maps directly to a field element. For a message of length k, the codeword has length n = min(2k, 130), giving error correction capacity t = ⌊(n-k)/2⌋.
 
 Sample output for the message `"Hello! My name is Ryan"`:
 
@@ -113,6 +113,6 @@ python3 vis/plot_error_threshold.py    # saves vis/error_threshold.png
 ./build/test
 ```
 
-Covers: $\mathbb{F}_p$ arithmetic and inverses, polynomial division/GCD/Lagrange interpolation, Gaussian elimination, and RS encode/decode with $0$ errors, $t$ errors, and $t+1$ errors (expected failure).
+Covers: 𝔽ₚ arithmetic and inverses, polynomial division/GCD/Lagrange interpolation, Gaussian elimination, and RS encode/decode with 0 errors, t errors, and t+1 errors (expected failure).
 
 ---
