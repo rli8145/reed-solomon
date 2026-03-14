@@ -125,7 +125,6 @@ Fp Fp::sqrt() const {
     while (z.legendre() != -1)
         z = Fp(z.val + 1, p);
 
-    Fp M_unused(S, p);          // only need S as integer
     unsigned long M = S;
     Fp c = pow(z, Q);           // c = z^Q
     Fp t = pow(*this, Q);       // t = n^Q
