@@ -1,6 +1,6 @@
 # Reed-Solomon Error Correcting Codes
 
-A from-scratch C++ implementation of Reed-Solomon encoding and decoding over prime fields 𝔽ₚ, built on top of GMP for exact arithmetic. Includes two independent decoders and Python visualizations via matplotlib.
+A from-scratch C++ implementation of Reed-Solomon error correcting codes over finite fields 𝔽ₚ, built on top of GMP for exact arithmetic. Includes two independent decoders - Berlekamp-Welch and Euclidean - and Python visualizations via matplotlib.
 
 ## Components
 
